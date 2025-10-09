@@ -1,0 +1,25 @@
+# Streamlit Pages Configuration
+# This file controls which pages appear in the sidebar
+
+[[pages]]
+path = "pages/0_🔐_Admin_Login.py"
+name = "🔐 Admin Girişi"
+icon = "🔐"
+
+[[pages]]
+path = "pages/1_🍽️_Menu.py"
+name = "🍽️ Menü"
+icon = "🍽️"
+
+[[pages]]
+path = "pages/2_🛒_Cart.py"
+name = "🛒 Sepet"
+icon = "🛒"
+
+[[pages]]
+path = "pages/3_💬_AI_Assistant.py"
+name = "💬 AI Asistan"
+icon = "💬"
+
+# Admin pages - these will be hidden from regular users
+# and only accessible via direct navigation after login

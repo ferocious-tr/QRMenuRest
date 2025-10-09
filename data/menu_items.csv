@@ -1,0 +1,36 @@
+Category,Name,Name_EN,Description,Description_EN,Price,Is_Vegetarian,Is_Vegan,Is_Spicy,Spicy_Level,Allergens,Ingredients,Calories
+Başlangıçlar,Bruschetta,Bruschetta,Kızarmış ekmek üzerinde domates ve fesleğen,Grilled bread with tomatoes and basil,45.00,1,1,0,0,"gluten","tomato,basil,bread,olive oil",180
+Başlangıçlar,Mozzarella Sticks,Mozzarella Sticks,Çıtır çıtır kızarmış mozzarella çubukları,Crispy fried mozzarella sticks,55.00,1,0,0,0,"dairy,gluten","mozzarella,flour,breadcrumbs",320
+Başlangıçlar,Çıtır Soğan Halkaları,Onion Rings,Altın sarısı kızarmış soğan halkaları,Golden fried onion rings,40.00,1,0,0,0,"gluten","onion,flour,breadcrumbs",280
+Başlangıçlar,Sarımsaklı Ekmek,Garlic Bread,Sarımsaklı tereyağı ile fırınlanmış ekmek,Bread baked with garlic butter,35.00,1,0,0,0,"gluten,dairy","bread,garlic,butter",240
+Başlangıçlar,Tavuk Kanatları,Chicken Wings,Acılı sos ile servis edilen tavuk kanatları,Chicken wings served with spicy sauce,65.00,0,0,1,3,"","chicken,spices",420
+Pizzalar,Margherita,Margherita,Klasik İtalyan pizzası - domates sos ve mozzarella,Classic Italian pizza with tomato sauce and mozzarella,85.00,1,0,0,0,"gluten,dairy","dough,tomato,mozzarella,basil",650
+Pizzalar,Pepperoni,Pepperoni,Bol pepperoni ve mozzarella peyniri,Generous pepperoni and mozzarella cheese,95.00,0,0,0,0,"gluten,dairy","dough,tomato,mozzarella,pepperoni",780
+Pizzalar,Vejeteryan Özel,Veggie Special,Taze sebzeler ve zeytinlerle,Fresh vegetables and olives,90.00,1,0,0,0,"gluten,dairy","dough,tomato,mozzarella,vegetables,olives",620
+Pizzalar,Dört Peynir,Four Cheese,Mozzarella parmesan gorgonzola ve ricotta,Mozzarella parmesan gorgonzola and ricotta,105.00,1,0,0,0,"gluten,dairy","dough,tomato,mozzarella,parmesan,gorgonzola,ricotta",820
+Pizzalar,Ton Balıklı,Tuna Pizza,Ton balığı soğan ve zeytinlerle,Tuna onion and olives,100.00,0,0,0,0,"gluten,dairy,fish","dough,tomato,mozzarella,tuna,onion,olives",720
+Pizzalar,Sucuklu,Spicy Sausage Pizza,Özel baharatlandırılmış sucuk dilimler,Special spiced sausage slices,98.00,0,0,1,2,"gluten,dairy","dough,tomato,mozzarella,sucuk,peppers",780
+Pizzalar,BBQ Tavuklu,BBQ Chicken,Izgara tavuk ve BBQ sos,Grilled chicken and BBQ sauce,110.00,0,0,0,0,"gluten,dairy","dough,bbq sauce,mozzarella,chicken,onion",820
+Pizzalar,Hawaii,Hawaiian,Ananas ve jambonlu klasik,Classic with pineapple and ham,95.00,0,0,0,0,"gluten,dairy","dough,tomato,mozzarella,ham,pineapple",720
+Pizzalar,Karışık,Mixed,Salam sosis mantar ve biber,Salami sausage mushroom and peppers,105.00,0,0,0,0,"gluten,dairy","dough,tomato,mozzarella,salami,sausage,mushroom,peppers",850
+Ana Yemekler,Tavuk Parmak,Chicken Tenders,Çıtır çıtır tavuk parmaklıklar ve patates,Crispy chicken tenders with fries,75.00,0,0,0,0,"gluten","chicken,flour,breadcrumbs,potatoes",680
+Ana Yemekler,Izgara Tavuk,Grilled Chicken,Baharatlı ızgara tavuk göğsü ve salata,Spiced grilled chicken breast with salad,85.00,0,0,0,0,"","chicken,spices,lettuce,tomato",450
+Ana Yemekler,Köfte Tabağı,Meatball Plate,Ev yapımı köfte pilav ve salata ile,Homemade meatballs with rice and salad,80.00,0,0,0,0,"","beef,rice,lettuce,tomato,onion",620
+Pastalar,Fettuccine Alfredo,Fettuccine Alfredo,Kremalı beyaz sos ile fettuccine,Fettuccine with creamy white sauce,70.00,1,0,0,0,"gluten,dairy","pasta,cream,parmesan,butter",720
+Pastalar,Spagetti Bolognese,Spaghetti Bolognese,Kıymalı domates soslu spagetti,Spaghetti with meat tomato sauce,75.00,0,0,0,0,"gluten","pasta,beef,tomato,onion,garlic",680
+Pastalar,Penne Arrabbiata,Penne Arrabbiata,Acılı domates soslu penne,Penne with spicy tomato sauce,65.00,1,1,1,4,"gluten","pasta,tomato,garlic,chili,olive oil",580
+Salatalar,Sezar Salata,Caesar Salad,Tavuklu klasik sezar salata,Classic caesar salad with chicken,60.00,0,0,0,0,"gluten,dairy,egg","lettuce,chicken,parmesan,croutons,caesar dressing",380
+Salatalar,Akdeniz Salatası,Mediterranean Salad,Taze sebzeler zeytinyağı ve beyaz peynir,Fresh vegetables with olive oil and feta cheese,55.00,1,0,0,0,"dairy","lettuce,tomato,cucumber,feta,olives,olive oil",280
+Salatalar,Ton Balıklı Salata,Tuna Salad,Ton balıklı karışık yeşillikler,Mixed greens with tuna,65.00,0,0,0,0,"fish","lettuce,tuna,tomato,corn,olive oil",320
+İçecekler,Coca Cola,Coca Cola,Coca Cola 330ml,Coca Cola 330ml,15.00,1,1,0,0,"","",140
+İçecekler,Fanta,Fanta,Fanta Portakal 330ml,Fanta Orange 330ml,15.00,1,1,0,0,"","",160
+İçecekler,Sprite,Sprite,Sprite 330ml,Sprite 330ml,15.00,1,1,0,0,"","",140
+İçecekler,Su,Water,Su 500ml,Water 500ml,10.00,1,1,0,0,"","",0
+İçecekler,Ayran,Ayran,Ev yapımı ayran,Homemade ayran,12.00,1,0,0,0,"dairy","yogurt,water,salt",60
+İçecekler,Limonata,Lemonade,Taze sıkılmış limonata,Freshly squeezed lemonade,20.00,1,1,0,0,"","lemon,water,sugar",80
+İçecekler,Portakal Suyu,Orange Juice,Taze sıkılmış portakal suyu,Freshly squeezed orange juice,25.00,1,1,0,0,"","orange",110
+Tatlılar,Tiramisu,Tiramisu,Klasik İtalyan tatlısı,Classic Italian dessert,50.00,1,0,0,0,"gluten,dairy,egg","mascarpone,coffee,ladyfingers,cocoa",420
+Tatlılar,Cheesecake,Cheesecake,New York usulü cheesecake,New York style cheesecake,45.00,1,0,0,0,"gluten,dairy,egg","cream cheese,graham crackers,sugar",380
+Tatlılar,Sütlaç,Rice Pudding,Fırın sütlaç,Oven baked rice pudding,35.00,1,0,0,0,"dairy","rice,milk,sugar",280
+Tatlılar,Profiterol,Profiterole,Çikolata soslu profiterol,Profiterole with chocolate sauce,48.00,1,0,0,0,"gluten,dairy,egg","choux pastry,cream,chocolate",520
+Tatlılar,Dondurma,Ice Cream,3 top dondurma (vanilyaçikolataçilek),3 scoops ice cream (vanilla chocolate strawberry),30.00,1,0,0,0,"dairy","milk,cream,sugar",240

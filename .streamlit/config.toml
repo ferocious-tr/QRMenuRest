@@ -1,0 +1,3 @@
+[client]
+# Show or hide the top-right hamburger menu
+showSidebarNavigation = false

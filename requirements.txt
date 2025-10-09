@@ -1,0 +1,43 @@
+# AI & LangChain
+langchain
+langchain-ollama
+langchain-chroma
+langchain-community
+
+# Data Processing
+pandas
+numpy
+
+# Web Framework (Streamlit MVP)
+streamlit
+streamlit-option-menu
+streamlit-extras
+
+# Database
+sqlalchemy
+
+# QR Code
+qrcode[pil]
+opencv-python
+pyzbar
+
+# Utilities
+python-dotenv
+pillow
+requests
+
+# Date & Time
+python-dateutil
+
+# Excel Export (for Reports)
+openpyxl
+xlsxwriter
+
+# Email Notifications
+secure-smtplib
+
+# Future Django Support (commented for now)
+# django>=4.2
+# djangorestframework
+# django-cors-headers
+# psycopg2-binary
