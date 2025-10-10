@@ -68,6 +68,10 @@ class DatabaseManager:
         """Get single menu item"""
         return self.session.query(MenuItem).filter(MenuItem.id == item_id).first()
     
+    def get_menu_item(self, item_id):
+        """Alias for get_menu_item_by_id"""
+        return self.get_menu_item_by_id(item_id)
+    
     def search_menu_items(self, search_term, available_only=True):
         """Search menu items by name or description"""
         query = self.session.query(MenuItem).filter(
@@ -363,7 +367,7 @@ class DatabaseManager:
         allowed_fields = [
             'name_tr', 'name_en', 'logo_url', 'icon_url',
             'phone', 'email', 'address', 'about_tr', 'about_en',
-            'working_hours', 'social_media'
+            'working_hours', 'social_media', 'ai_welcome_message_tr', 'ai_welcome_message_en'
         ]
         
         for key, value in kwargs.items():

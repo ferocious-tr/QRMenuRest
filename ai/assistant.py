@@ -57,27 +57,44 @@ class MenuAssistant:
             return self._get_error_message(language)
     
     def _format_menu_items(self, docs, language='tr'):
-        """Format retrieved documents for prompt"""
+        """Format retrieved documents for prompt with item IDs"""
         if not docs:
             if language == 'tr':
-                return "Menüde bu kriterlere uygun ürün bulunamadı."
+                return "Menüde bu kriterlere uygun ürün bulunamadı. Lütfen mevcut kategorilerimizden seçim yapın."
             else:
-                return "No items found matching these criteria."
+                return "No items found matching these criteria. Please choose from our available categories."
+        
+        # Collect unique categories
+        categories = set()
+        for doc in docs:
+            cat = doc.metadata.get('category', 'N/A')
+            if cat != 'N/A':
+                categories.add(cat)
         
         formatted = []
+        
+        # Add category info at the beginning
+        if categories:
+            cat_list = ", ".join(sorted(categories))
+            if language == 'tr':
+                formatted.append(f"📋 Bulunan kategoriler: {cat_list}\n")
+            else:
+                formatted.append(f"📋 Found categories: {cat_list}\n")
+        
         for i, doc in enumerate(docs, 1):
             metadata = doc.metadata
+            item_id = metadata.get('item_id', 'N/A')
             
             if language == 'tr':
                 item_text = f"""
-{i}. {metadata.get('name', 'Unknown')}
+{i}. {metadata.get('name', 'Unknown')} (ID: {item_id})
    - Kategori: {metadata.get('category', 'N/A')}
    - Fiyat: {metadata.get('price', 0)} TL
    - Açıklama: {doc.page_content[:200]}
 """
             else:
                 item_text = f"""
-{i}. {metadata.get('name', 'Unknown')}
+{i}. {metadata.get('name', 'Unknown')} (ID: {item_id})
    - Category: {metadata.get('category', 'N/A')}
    - Price: {metadata.get('price', 0)} TL
    - Description: {doc.page_content[:200]}

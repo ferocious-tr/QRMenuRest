@@ -51,11 +51,12 @@ except:
     social_media = {}
 
 # Create tabs
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📋 Temel Bilgiler",
     "🎨 Görsel Kimlik",
     "📞 İletişim Bilgileri",
-    "🌐 Sosyal Medya"
+    "🌐 Sosyal Medya",
+    "🤖 AI Asistan"
 ])
 
 # ========================
@@ -395,6 +396,118 @@ with col3:
     st.markdown("#### 🇬🇧 English")
     st.markdown(f"**{restaurant.name_en}**")
     st.caption(restaurant.about_en or "No description")
+
+# ========================
+# TAB 5: AI ASSISTANT
+# ========================
+with tab5:
+    st.markdown("### 🤖 AI Asistan Ayarları")
+    st.info("💡 AI asistanın müşterilere gösterdiği karşılama mesajını özelleştirin.")
+    
+    with st.form("ai_settings_form"):
+        st.markdown("#### 🇹🇷 Türkçe Karşılama Mesajı")
+        ai_welcome_tr = st.text_area(
+            "Türkçe Mesaj",
+            value=restaurant.ai_welcome_message_tr or """🍕 **{restaurant_name}'ya Hoş Geldiniz!** 🍝
+
+Ben sizin AI menü asistanınızım. Size yardımcı olmak için buradayım!
+
+**Yapabileceklerim:**
+- 🔍 Menüden öneri sunmak
+- ❓ Sorularınızı cevaplamak
+- 🌱 Vejetaryen/vegan seçenekleri göstermek
+- 🌶️ Acılık seviyelerini açıklamak
+- 🥜 Alerjen bilgileri vermek
+
+**Örnek Sorular:**
+- "Vejetaryen ne var?"
+- "Acı pizzalarınız var mı?"
+- "Fıstık alerjim var, ne önerirsiniz?"
+- "100 TL altında ne yiyebilirim?"
+
+Ne istersiniz? 😊""",
+            height=350,
+            help="Müşterilerin AI asistanı ilk açtığında göreceği mesaj. {restaurant_name} değişkenini kullanabilirsiniz."
+        )
+        
+        st.markdown("---")
+        st.markdown("#### 🇬🇧 English Welcome Message")
+        ai_welcome_en = st.text_area(
+            "English Message",
+            value=restaurant.ai_welcome_message_en or """🍕 **Welcome to {restaurant_name}!** 🍝
+
+I'm your AI menu assistant, here to help!
+
+**I can help you with:**
+- 🔍 Menu recommendations
+- ❓ Answering questions
+- 🌱 Vegetarian/vegan options
+- 🌶️ Spiciness levels
+- 🥜 Allergen information
+
+**Example questions:**
+- "What vegetarian options do you have?"
+- "Do you have spicy pizzas?"
+- "I'm allergic to nuts, what do you recommend?"
+- "What can I eat under 100 TL?"
+
+What would you like? 😊""",
+            height=350,
+            help="Welcome message customers see when opening AI assistant. You can use {restaurant_name} variable."
+        )
+        
+        st.markdown("---")
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.caption("💡 **İpucu:** Mesajlarınızda {restaurant_name} kullanarak restoran adını dinamik olarak ekleyebilirsiniz.")
+        
+        with col2:
+            submitted = st.form_submit_button(
+                "💾 Kaydet",
+                type="primary",
+                use_container_width=True
+            )
+        
+        if submitted:
+            try:
+                # Update database
+                db.update_restaurant_info(
+                    ai_welcome_message_tr=ai_welcome_tr,
+                    ai_welcome_message_en=ai_welcome_en
+                )
+                st.success("✅ AI asistan ayarları güncellendi!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Hata: {str(e)}")
+    
+    # Preview section
+    st.markdown("---")
+    st.markdown("### 👁️ Önizleme")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 🇹🇷 Türkçe Önizleme")
+        preview_tr = (restaurant.ai_welcome_message_tr or ai_welcome_tr).replace(
+            "{restaurant_name}", 
+            restaurant.name_tr
+        )
+        st.markdown(
+            f'<div style="background: #f0f2f6; padding: 1rem; border-radius: 10px; border-left: 4px solid #667eea;">{preview_tr}</div>',
+            unsafe_allow_html=True
+        )
+    
+    with col2:
+        st.markdown("#### 🇬🇧 English Preview")
+        preview_en = (restaurant.ai_welcome_message_en or ai_welcome_en).replace(
+            "{restaurant_name}", 
+            restaurant.name_en
+        )
+        st.markdown(
+            f'<div style="background: #f0f2f6; padding: 1rem; border-radius: 10px; border-left: 4px solid #764ba2;">{preview_en}</div>',
+            unsafe_allow_html=True
+        )
 
 # Footer
 st.markdown("---")

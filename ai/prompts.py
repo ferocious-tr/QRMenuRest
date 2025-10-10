@@ -43,15 +43,38 @@ Restoran Bilgileri:
 
 Müşteri Sorusu: {{question}}
 
+ÖNEMLİ - Ürün Özelliklerini Tanı:
+- ALERJENLER: Eğer üründe alerjen varsa MUTLAKA belirt ve uyar
+- VEJETERYENlere uygun: Vejetaryen müşterilere öncelikle öner
+- VEGANlara uygun: Vegan müşterilere sadece vegan ürünleri öner
+- ACILIK: Acı sevmeyenlere veya acı sevenlere uygun öner
+- İÇİNDEKİLER: Özel taleplerde içeriği kontrol et
+
+ÖNEMLİ - Ürün Önerme Formatı:
+- Bir ürün önerdiğinde, ürün isminden SONRA [PRODUCT:ID] formatında ID ekle
+- Örnek: "**Margherita Pizza** [PRODUCT:5] harika bir seçim! 95 TL"
+- Her önerilen ürün için mutlaka [PRODUCT:ID] ekle
+- ID numarasını menu_items'dan al
+
+ÖNEMLİ - Kategori Kontrolü:
+- Eğer menu_items listesi BOŞ veya müşterinin istediği kategoride ürün YOKSA:
+  * Açıkça "Üzgünüm, menümüzde [kategori] bulunmuyor" diye belirt
+  * Mevcut kategorilerdeki ürünleri öner
+  * Yanlış kategori önerme yapma!
+
 Lütfen şu kurallara uy:
 1. Samimi ve yardımsever bir dille konuş
 2. Fiyatları TL olarak belirt
-3. Vejetaryen/vegan/alerjen bilgilerini önemse
-4. En fazla 3-4 öneri sun
-5. Kısa ve öz cevaplar ver
-6. Emoji kullanarak mesajı renklendir 🍕🥗🍝
-7. Müşteriyi sipariş vermeye teşvik et
-8. TÜRKÇE yanıt ver
+3. Vejetaryen/vegan/alerjen bilgilerini ÇOK ÖNEMLİ - mutlaka bahset
+4. Alerjen içeren ürünlerde ⚠️ işareti kullan
+5. En fazla 3-4 öneri sun
+6. Kısa ve öz cevaplar ver
+7. Emoji kullanarak mesajı renklendir 🍕🥗🍝
+8. Müşteriyi sipariş vermeye teşvik et
+9. TÜRKÇE yanıt ver
+10. Öneri yaparken mutlaka [PRODUCT:ID] formatını kullan
+11. SADECE menu_items listesindeki ürünleri öner
+12. Özel diyet (vejetaryen/vegan) talepleri için uygun ürünleri seç
 
 Cevap:"""
 
@@ -72,15 +95,38 @@ Here are the relevant items from the menu:
 
 Customer Question: {{question}}
 
+IMPORTANT - Recognize Product Features:
+- ALLERGENS: If product contains allergens, MUST mention and warn
+- VEGETARIAN suitable: Prioritize for vegetarian customers
+- VEGAN suitable: Only recommend vegan items to vegan customers
+- SPICINESS: Recommend based on spice preference
+- INGREDIENTS: Check contents for special requests
+
+IMPORTANT - Product Recommendation Format:
+- When recommending a product, add [PRODUCT:ID] format AFTER the product name
+- Example: "**Margherita Pizza** [PRODUCT:5] is a great choice! 95 TL"
+- Always add [PRODUCT:ID] for each recommended product
+- Get the ID number from menu_items
+
+IMPORTANT - Category Check:
+- If menu_items list is EMPTY or there are NO items in the requested category:
+  * Clearly state "Sorry, we don't have [category] on our menu"
+  * Suggest items from available categories
+  * Don't recommend wrong categories!
+
 Please follow these rules:
 1. Speak in a friendly and helpful manner
 2. State prices in TL
-3. Pay attention to vegetarian/vegan/allergen information
-4. Suggest a maximum of 3-4 recommendations
-5. Give short and concise answers
-6. Use emojis to make the message colorful 🍕🥗🍝
-7. Encourage the customer to place an order
-8. RESPOND IN ENGLISH
+3. Vegetarian/vegan/allergen information is VERY IMPORTANT - always mention
+4. Use ⚠️ for items with allergens
+5. Suggest a maximum of 3-4 recommendations
+6. Give short and concise answers
+7. Use emojis to make the message colorful 🍕🥗🍝
+8. Encourage the customer to place an order
+9. RESPOND IN ENGLISH
+10. Always use [PRODUCT:ID] format when making recommendations
+11. ONLY recommend items from the menu_items list
+12. For special diet requests (vegetarian/vegan), select appropriate items
 
 Response:"""
 
@@ -249,5 +295,27 @@ What would you like? 😊
 
 
 def get_welcome_message(language='tr'):
-    """Get welcome message in specified language"""
-    return WELCOME_MESSAGE_TR if language == 'tr' else WELCOME_MESSAGE_EN
+    """Get welcome message in specified language from database or fallback to default"""
+    try:
+        from database.db_manager import get_db
+        db = get_db()
+        restaurant = db.get_restaurant_info()
+        
+        if language == 'tr':
+            message = restaurant.ai_welcome_message_tr
+            restaurant_name = restaurant.name_tr
+        else:
+            message = restaurant.ai_welcome_message_en
+            restaurant_name = restaurant.name_en
+        
+        db.close()
+        
+        # If custom message exists, use it (replace placeholder)
+        if message:
+            return message.replace("{restaurant_name}", restaurant_name)
+        
+        # Otherwise use default
+        return WELCOME_MESSAGE_TR if language == 'tr' else WELCOME_MESSAGE_EN
+    except:
+        # Fallback to default if database error
+        return WELCOME_MESSAGE_TR if language == 'tr' else WELCOME_MESSAGE_EN

@@ -5,9 +5,14 @@ AI Assistant Page - Chat with AI menu assistant
 import streamlit as st
 from ai.assistant import get_assistant
 from ai.prompts import get_welcome_message
-from utils.session_manager import init_session_state, add_chat_message, clear_chat_history, add_to_cart
+from utils.session_manager import init_session_state, add_chat_message, clear_chat_history, add_to_cart, get_session_id, clear_cart
 from utils.page_navigation import show_customer_navigation, hide_default_sidebar
 from database.db_manager import get_db
+from utils.ai_helper import (
+    parse_ai_response_for_products,
+    create_product_card,
+    create_order_confirmation_message
+)
 
 # Page config
 st.set_page_config(page_title="AI Asistan", page_icon="💬", layout="wide")
@@ -65,22 +70,87 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def create_order_from_cart():
+    """Create order from cart items"""
+    if not st.session_state.cart:
+        return None, "Sepetiniz boş!"
+    
+    if not st.session_state.table_number:
+        return None, "Masa numarası bulunamadı!"
+    
+    try:
+        db = get_db()
+        
+        # Create order
+        order = db.create_order(
+            table_id=st.session_state.table_id,
+            session_id=get_session_id()
+        )
+        
+        # Add items to order
+        for cart_item in st.session_state.cart:
+            db.add_order_item(
+                order_id=order.id,
+                menu_item_id=cart_item['item_id'],
+                quantity=cart_item['quantity'],
+                notes=cart_item.get('notes', '')
+            )
+        
+        # Update table status
+        db.update_table_status(
+            table_id=st.session_state.table_id,
+            status='occupied',
+            session_id=get_session_id()
+        )
+        
+        # Save order ID
+        st.session_state.current_order_id = order.id
+        
+        # Send notification if enabled
+        try:
+            from utils.notification_manager import get_notification_manager
+            nm = get_notification_manager()
+            items = [
+                {
+                    'name': item['item_name'],
+                    'quantity': item['quantity']
+                }
+                for item in st.session_state.cart
+            ]
+            nm.notify_new_order(
+                order_id=order.id,
+                table_number=st.session_state.table_number,
+                total_amount=st.session_state.cart_total,
+                items=items
+            )
+        except Exception as e:
+            print(f"Notification error: {e}")
+        
+        db.close()
+        
+        # Clear cart
+        clear_cart()
+        
+        return order.id, None
+        
+    except Exception as e:
+        return None, f"Sipariş oluşturulamadı: {str(e)}"
+
 def display_chat_message(role, content):
     """Display a chat message"""
     if role == "user":
-        st.markdown(f"""
-        <div class="chat-message user-message">
-            <strong>👤 Siz:</strong><br>
-            {content}
-        </div>
-        """, unsafe_allow_html=True)
+        with st.chat_message("user"):
+            st.markdown(f"**👤 Siz:**\n\n{content}")
     else:
-        st.markdown(f"""
-        <div class="chat-message assistant-message">
-            <strong>🤖 AI Asistan:</strong><br>
-            {content}
-        </div>
-        """, unsafe_allow_html=True)
+        # Parse AI response for product IDs
+        clean_content = content
+        if "[PRODUCT:" in content:
+            # Extract products and clean text
+            product_ids, clean_text = parse_ai_response_for_products(content)
+            clean_content = clean_text
+            
+        with st.chat_message("assistant"):
+            st.markdown(f"**🤖 AI Asistan:**\n\n{clean_content}")
 
 def show_suggestions():
     """Display suggestion chips"""
@@ -104,19 +174,6 @@ def show_suggestions():
                 return suggestion
     
     return None
-
-def extract_menu_items_from_response(response, db):
-    """Try to extract menu item names from AI response"""
-    # This is a simple implementation - can be improved
-    items = db.get_all_menu_items()
-    found_items = []
-    
-    response_lower = response.lower()
-    for item in items:
-        if item.name.lower() in response_lower:
-            found_items.append(item)
-    
-    return found_items
 
 def main():
     """Main AI assistant page"""
@@ -166,6 +223,29 @@ def main():
     with chat_container:
         for message in st.session_state.chat_history:
             display_chat_message(message['role'], message['content'])
+            
+            # If it's an assistant message with product IDs, show product cards
+            if message['role'] == 'assistant' and '[PRODUCT:' in message['content']:
+                product_ids, _ = parse_ai_response_for_products(message['content'])
+                
+                if product_ids:
+                    db = get_db()
+                    st.markdown("#### 🍽️ Önerilen Ürünler")
+                    
+                    # Create unique suffix from timestamp
+                    timestamp_str = str(message.get('timestamp', '')).replace(' ', '_').replace(':', '_').replace('.', '_')
+                    
+                    # Display up to 3 products per row
+                    cols_per_row = min(len(product_ids), 3)
+                    for i in range(0, len(product_ids), cols_per_row):
+                        cols = st.columns(cols_per_row)
+                        for j, product_id in enumerate(product_ids[i:i+cols_per_row]):
+                            product = db.get_menu_item(product_id)
+                            if product:
+                                with cols[j]:
+                                    create_product_card(product, f"{timestamp_str}_{product_id}")
+                    
+                    db.close()
     
     st.markdown("---")
     
@@ -196,6 +276,9 @@ def main():
         message = selected_suggestion if selected_suggestion else user_input
         
         if message:
+            # Set AI processing flag - DISABLE BUTTONS
+            st.session_state.ai_is_processing = True
+            
             # Show processing indicator
             with processing_placeholder:
                 st.info("🤖 Düşünüyorum...")
@@ -216,33 +299,134 @@ def main():
             
             # Get AI response
             try:
-                response = assistant.get_response(message, lang_code, filters)
-                add_chat_message('assistant', response)
-                
-                # Clear processing indicator
-                processing_placeholder.empty()
-                
-                # Try to extract menu items and show quick add buttons
-                db = get_db()
-                mentioned_items = extract_menu_items_from_response(response, db)
-                
-                if mentioned_items:
-                    st.markdown("### 🍽️ Bahsedilen Ürünler")
-                    cols = st.columns(min(len(mentioned_items), 3))
+                # Check if waiting for order confirmation
+                if st.session_state.get('waiting_order_confirmation', False):
+                    confirmation_yes = ['evet', 'yes', 'tamam', 'okay', 'ok', 'onaylıyorum', 'onay']
+                    confirmation_no = ['hayır', 'no', 'vazgeç', 'iptal', 'cancel']
                     
-                    for idx, item in enumerate(mentioned_items[:3]):  # Show max 3
-                        with cols[idx]:
-                            st.markdown(f"**{item.name}**")
-                            st.caption(f"{item.price} ₺")
-                            if st.button(f"➕ Sepete Ekle", key=f"quick_add_{item.id}"):
-                                add_to_cart(item.id, item.name, item.price)
-                                st.success(f"✅ {item.name} sepete eklendi!")
+                    if any(keyword in message.lower() for keyword in confirmation_yes):
+                        # User confirmed the order - Create actual order in database
+                        st.session_state.waiting_order_confirmation = False
+                        
+                        # Create order
+                        order_id, error = create_order_from_cart()
+                        
+                        if order_id:
+                            success_msg = f"""
+✅ **Siparişiniz Alındı!**
+
+📝 Sipariş No: #{order_id}
+Siparişiniz mutfağa iletildi. Yakında hazırlanmaya başlanacak.
+Afiyet olsun! 🍽️✨
+""" if lang_code == 'tr' else f"""
+✅ **Order Confirmed!**
+
+📝 Order No: #{order_id}
+Your order has been sent to the kitchen. It will be prepared shortly.
+Enjoy your meal! 🍽️✨
+"""
+                        else:
+                            success_msg = f"""
+❌ **Sipariş Hatası**
+
+{error}
+Lütfen tekrar deneyin veya garsondan yardım isteyin.
+""" if lang_code == 'tr' else f"""
+❌ **Order Error**
+
+{error}
+Please try again or ask a waiter for help.
+"""
+                        
+                        add_chat_message('assistant', success_msg)
+                        
+                        # Clear processing indicator and re-enable buttons
+                        processing_placeholder.empty()
+                        st.session_state.ai_is_processing = False
+                        
+                        st.rerun()
+                        
+                    elif any(keyword in message.lower() for keyword in confirmation_no):
+                        # User cancelled the order
+                        st.session_state.waiting_order_confirmation = False
+                        
+                        cancel_msg = """
+Sipariş iptal edildi. Başka bir şey sipariş etmek ister misiniz?
+""" if lang_code == 'tr' else """
+Order cancelled. Would you like to order something else?
+"""
+                        add_chat_message('assistant', cancel_msg)
+                        
+                        # Clear processing indicator and re-enable buttons
+                        processing_placeholder.empty()
+                        st.session_state.ai_is_processing = False
+                        
+                        st.rerun()
+                    else:
+                        # User said something else, remind them to confirm
+                        reminder_msg = """
+Lütfen siparişinizi onaylamak için 'evet' veya iptal etmek için 'hayır' yazın.
+""" if lang_code == 'tr' else """
+Please type 'yes' to confirm your order or 'no' to cancel.
+"""
+                        add_chat_message('assistant', reminder_msg)
+                        
+                        # Clear processing indicator and re-enable buttons
+                        processing_placeholder.empty()
+                        st.session_state.ai_is_processing = False
+                        
+                        st.rerun()
+                    
+                    # Don't process further if waiting for confirmation
+                    return
                 
-                db.close()
+                response = assistant.get_response(message, lang_code, filters)
+                
+                # Check if user is asking to confirm order
+                confirm_keywords = ['sipariş ver', 'sipariş et', 'onayla', 'confirm order', 'place order', 'checkout']
+                if any(keyword in message.lower() for keyword in confirm_keywords):
+                    # Show order confirmation
+                    if st.session_state.cart:
+                        order_msg = create_order_confirmation_message(
+                            st.session_state.cart,
+                            st.session_state.cart_total,
+                            lang_code
+                        )
+                        add_chat_message('assistant', order_msg)
+                        
+                        # Set flag to wait for confirmation
+                        st.session_state.waiting_order_confirmation = True
+                        
+                        # Clear processing indicator and re-enable buttons
+                        processing_placeholder.empty()
+                        st.session_state.ai_is_processing = False
+                        
+                        st.rerun()
+                    else:
+                        add_chat_message('assistant', 
+                            "Sepetiniz boş görünüyor. Önce sepete ürün eklemelisiniz." if lang_code == 'tr' 
+                            else "Your cart appears to be empty. Please add items to your cart first.")
+                        
+                        # Clear processing indicator and re-enable buttons
+                        processing_placeholder.empty()
+                        st.session_state.ai_is_processing = False
+                        
+                        st.rerun()
+                else:
+                    # Regular AI response
+                    add_chat_message('assistant', response)
+                    
+                    # Clear processing indicator and re-enable buttons
+                    processing_placeholder.empty()
+                    st.session_state.ai_is_processing = False
+                    
+                    st.rerun()
                 
             except Exception as e:
-                # Clear processing indicator on error
+                # Clear processing indicator and re-enable buttons on error
                 processing_placeholder.empty()
+                st.session_state.ai_is_processing = False
+                
                 error_msg = f"Üzgünüm, bir hata oluştu: {str(e)}"
                 add_chat_message('assistant', error_msg)
                 st.error(error_msg)

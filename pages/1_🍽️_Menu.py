@@ -98,7 +98,7 @@ def show_filters(db):
     st.sidebar.markdown("#### 💰 Fiyat Aralığı")
     price_range = st.sidebar.slider(
         "Maksimum Fiyat (TL)",
-        0, 150, 150,
+        0, 1000, 1000,
         key="price_slider"
     )
     

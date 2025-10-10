@@ -39,6 +39,14 @@ def init_session_state():
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
     
+    # AI processing flag
+    if 'ai_is_processing' not in st.session_state:
+        st.session_state.ai_is_processing = False
+    
+    # Waiting for order confirmation
+    if 'waiting_order_confirmation' not in st.session_state:
+        st.session_state.waiting_order_confirmation = False
+    
     # Admin/Staff mode
     if 'is_admin' not in st.session_state:
         st.session_state.is_admin = False

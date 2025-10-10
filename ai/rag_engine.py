@@ -1,14 +1,14 @@
 """
 RAG Engine for Menu AI Assistant
-Adapts existing vector.py for menu recommendation system
+Uses database instead of CSV files for menu data
 """
 
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 import os
-import pandas as pd
 from dotenv import load_dotenv
+from database.db_manager import get_db
 
 load_dotenv()
 
@@ -44,51 +44,47 @@ class MenuRAGEngine:
             self.retriever = self.vector_store.as_retriever(search_kwargs={"k": 5})
     
     def _create_menu_documents(self):
-        """Create vector documents from menu data"""
+        """Create vector documents from database menu items (only available items)"""
         documents = []
         ids = []
         
-        # Load menu items from CSV
+        # Load menu items from database - ONLY AVAILABLE ITEMS
         try:
-            df = pd.read_csv("data/menu_items.csv")
+            db = get_db()
+            menu_items = db.get_all_menu_items(available_only=True)  # Only active/available items
             
-            for i, row in df.iterrows():
+            for item in menu_items:
                 # Create rich document with all menu information
-                content = self._create_document_content(row)
+                content = self._create_document_content_from_db(item)
                 
                 document = Document(
                     page_content=content,
                     metadata={
-                        "item_id": i + 1,
-                        "name": row["Name"],
-                        "name_en": row["Name_EN"],
-                        "category": row["Category"],
-                        "price": row["Price"],
-                        "is_vegetarian": row["Is_Vegetarian"],
-                        "is_vegan": row["Is_Vegan"],
-                        "is_spicy": row["Is_Spicy"],
-                        "allergens": row["Allergens"],
+                        "item_id": item.id,
+                        "name": item.name,
+                        "name_en": item.name_en or item.name,
+                        "category": item.category.name if item.category else "Uncategorized",
+                        "price": float(item.price),
+                        "is_vegetarian": item.is_vegetarian,
+                        "is_vegan": item.is_vegan,
+                        "is_spicy": item.is_spicy,
+                        "spicy_level": item.spicy_level if item.is_spicy else 0,
+                        "allergens": item.allergens or "",
+                        "ingredients": item.ingredients or "",
+                        "is_available": True,  # Always True since we filter
                     },
-                    id=str(i + 1)
+                    id=str(item.id)
                 )
                 documents.append(document)
-                ids.append(str(i + 1))
+                ids.append(str(item.id))
             
-            print(f"✅ Created {len(documents)} menu documents")
+            db.close()
+            print(f"✅ Created {len(documents)} menu documents from database (available only)")
             
         except Exception as e:
-            print(f"⚠️  Error loading menu data: {e}")
-            print("💡 Using reviews data as fallback...")
-            # Fallback to old review data
-            df = pd.read_csv("realistic_restaurant_reviews.csv")
-            for i, row in df.iterrows():
-                document = Document(
-                    page_content=row["Title"] + " " + row["Review"],
-                    metadata={"rating": row["Rating"], "date": row["Date"]},
-                    id=str(i)
-                )
-                documents.append(document)
-                ids.append(str(i))
+            print(f"❌ Error loading menu data from database: {e}")
+            print("💡 Make sure the database is initialized with menu items")
+            raise
         
         # Create vector store
         self.vector_store = Chroma(
@@ -105,27 +101,36 @@ class MenuRAGEngine:
         
         print("✅ Vector database created successfully!")
     
-    def _create_document_content(self, row):
-        """Create rich text content for embedding"""
+    def _create_document_content_from_db(self, item):
+        """Create rich text content for embedding from database MenuItem"""
         content_parts = [
-            f"Yemek Adı: {row['Name']} ({row['Name_EN']})",
-            f"Kategori: {row['Category']}",
-            f"Açıklama: {row['Description']}",
-            f"Fiyat: {row['Price']} TL",
+            f"Yemek Adı: {item.name} ({item.name_en or item.name})",
+            f"Kategori: {item.category.name if item.category else 'Kategorisiz'}",
+            f"Açıklama: {item.description}",
+            f"Fiyat: {item.price} TL",
         ]
         
-        if row['Is_Vegetarian']:
-            content_parts.append("Vejetaryen uyumlu")
-        if row['Is_Vegan']:
-            content_parts.append("Vegan uyumlu")
-        if row['Is_Spicy']:
-            content_parts.append(f"Acılık seviyesi: {row['Spicy_Level']}/5")
+        # Dietary preferences - ÖNEMLİ ÖZELLIKLER
+        dietary_features = []
+        if item.is_vegetarian:
+            dietary_features.append("VEJETERYENlere uygun")
+        if item.is_vegan:
+            dietary_features.append("VEGANlara uygun")
         
-        if pd.notna(row['Allergens']) and row['Allergens']:
-            content_parts.append(f"Alerjenler: {row['Allergens']}")
+        if dietary_features:
+            content_parts.append("ÖZELLİKLER: " + ", ".join(dietary_features))
         
-        if pd.notna(row['Ingredients']) and row['Ingredients']:
-            content_parts.append(f"İçindekiler: {row['Ingredients']}")
+        # Spiciness level
+        if item.is_spicy:
+            content_parts.append(f"ACILIK: {item.spicy_level}/5 seviyesinde acı")
+        
+        # Allergens - ÇOK ÖNEMLİ
+        if item.allergens:
+            content_parts.append(f"⚠️ ALERJENLER: {item.allergens} içerir - alerjisi olanlar dikkat etmeli")
+        
+        # Ingredients
+        if item.ingredients:
+            content_parts.append(f"İÇİNDEKİLER: {item.ingredients}")
         
         return " | ".join(content_parts)
     

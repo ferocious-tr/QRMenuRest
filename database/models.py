@@ -189,6 +189,10 @@ class Restaurant(Base):
     # Social Media (JSON)
     social_media = Column(Text)  # JSON: {"instagram": "...", "facebook": "...", ...}
     
+    # AI Assistant Settings
+    ai_welcome_message_tr = Column(Text)  # AI welcome message in Turkish
+    ai_welcome_message_en = Column(Text)  # AI welcome message in English
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
