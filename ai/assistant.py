@@ -16,7 +16,7 @@ class MenuAssistant:
     
     def __init__(self):
         self.model_name = os.getenv('OLLAMA_MODEL', 'llama3.2')
-        self.llm = OllamaLLM(model=self.model_name)
+        self.llm = OllamaLLM(model=self.model_name, num_predict=150, temperature=0.7)
         self.rag_engine = get_rag_engine()
         # Keep both chains
         self.chain_tr = menu_assistant_prompt_tr | self.llm

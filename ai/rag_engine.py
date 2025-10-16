@@ -134,7 +134,7 @@ class MenuRAGEngine:
         
         return " | ".join(content_parts)
     
-    def search_menu(self, query, k=5):
+    def search_menu(self, query, k=3):
         """Search menu items based on query"""
         if not self.retriever:
             return []
